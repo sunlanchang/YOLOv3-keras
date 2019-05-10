@@ -11,7 +11,7 @@ import os
 from collections import defaultdict
 
 import numpy as np
-from keras import backend as K
+from tensorflow.python.keras import backend as K
 from keras.layers import (Conv2D, Input, ZeroPadding2D, Add,
                           UpSampling2D, MaxPooling2D, Concatenate)
 from keras.layers.advanced_activations import LeakyReLU
