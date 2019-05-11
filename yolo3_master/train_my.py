@@ -9,21 +9,21 @@ from yolo3.utils import get_random_data
 
 
 def _main():
-    annotation_path = '2007_train.txt'
-    log_dir = 'logs/'
-    classes_path = 'model_data/voc_classes.txt'
-    anchors_path = 'model_data/yolo_anchors.txt'
+    annotation_path = './data_anotation_2_txt/2007_train.txt'
+    log_weight_path = '../../logs/'
+    classes_path = './model_data/voc_classes.txt'
+    anchors_path = './model_data/yolo_anchors.txt'
     class_names = get_classes(classes_path)
     anchors = get_anchors(anchors_path)
     input_shape = (416,416) # multiple of 32, hw
     model = create_model(input_shape, anchors, len(class_names) )
-    train(model, annotation_path, input_shape, anchors, len(class_names), log_dir=log_dir)
+    train(model, annotation_path, input_shape, anchors, len(class_names), log_weight_path=log_weight_path)
 
-def train(model, annotation_path, input_shape, anchors, num_classes, log_dir='logs/'):
+def train(model, annotation_path, input_shape, anchors, num_classes, log_weight_path='../../logs/'):
     model.compile(optimizer='adam', loss={
         'yolo_loss': lambda y_true, y_pred: y_pred})
-    logging = TensorBoard(log_dir=log_dir)
-    checkpoint = ModelCheckpoint(log_dir + "ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5",
+    # logging = TensorBoard(log_dir=log_weight_path)
+    checkpoint = ModelCheckpoint(log_weight_path + "ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5",
         monitor='val_loss', save_weights_only=True, save_best_only=True, period=1)
     #*************超参数batch_size************************************************
     batch_size = 16
@@ -41,9 +41,9 @@ def train(model, annotation_path, input_shape, anchors, num_classes, log_dir='lo
             validation_steps=max(1, num_val//batch_size),
    #************************全部数据集被训练1000次******************************************
    #************************如训练集有500个样本，batchsize = 10 ，那么训练完整个样本集：iteration=50，epoch=1**********
-            epochs=1000,
-            initial_epoch=0)
-    model.save_weights(log_dir + 'trained_weights.h5')
+            epochs=1000)
+            # initial_epoch=0)
+    model.save_weights(log_weight_path + 'trained_weights.h5')
 
 def get_classes(classes_path):
     with open(classes_path) as f:
