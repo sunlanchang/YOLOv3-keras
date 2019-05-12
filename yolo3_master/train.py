@@ -57,7 +57,7 @@ def _main():
             # use custom yolo_loss Lambda layer.
             'yolo_loss': lambda y_true, y_pred: y_pred})
 
-        batch_size = 2
+        batch_size = 1
         print('Train on {} samples, val on {} samples, with batch size {}.'.format(
             num_train, num_val, batch_size))
         model.fit_generator(data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
@@ -131,13 +131,14 @@ def create_model(input_shape, anchors, num_classes, weights_path, load_pretraine
     if load_pretrained:
         model_body.load_weights(weights_path, by_name=True, skip_mismatch=True)
         print('Load weights {}.'.format(weights_path))
-        if freeze_body in [1, 2]:
-            # Freeze darknet53 body or freeze all but 3 output layers.
-            num = (185, len(model_body.layers)-3)[freeze_body-1]
-            for i in range(num):
-                model_body.layers[i].trainable = False
-            print('Freeze the first {} layers of total {} layers.'.format(
-                num, len(model_body.layers)))
+        # 固定权重
+        # if freeze_body in [1, 2]:
+        #     # Freeze darknet53 body or freeze all but 3 output layers.
+        #     num = (185, len(model_body.layers)-3)[freeze_body-1]
+        #     for i in range(num):
+        #         model_body.layers[i].trainable = False
+        #     print('Freeze the first {} layers of total {} layers.'.format(
+        #         num, len(model_body.layers)))
 
     model_loss = Lambda(yolo_loss, output_shape=(1,), name='yolo_loss',
                         arguments={'anchors': anchors, 'num_classes': num_classes, 'ignore_thresh': 0.5})(
