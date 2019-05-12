@@ -19,16 +19,21 @@ from yolo3.utils import letterbox_image
 import os
 from keras.utils import multi_gpu_model
 
+import tensorflow as tf
+
 
 class YOLO(object):
     _defaults = {
-        "model_path": 'model_data/trained_weights.h5',
-        "anchors_path": 'model_data/yolo_anchors.txt',
-        "classes_path": 'model_data/voc_classes.txt',
+        # "model_path": '../../logs/trained_weights.h5',
+        # "model_path": '../../logs/yolo_weights.h5',
+        "model_path": '../../logs/trained_weights_2007_50epoch.h5',
+        "anchors_path": './model_data/yolo_anchors.txt',
+        "classes_path": './model_data/voc_classes.txt',
         "score": 0.3,
         "iou": 0.45,
         "model_image_size": (416, 416),
         "gpu_num": 1,
+        # "gpu_num": 0,
     }
 
     @classmethod
@@ -71,7 +76,8 @@ class YOLO(object):
         is_tiny_version = num_anchors == 6  # default setting
         try:
             self.yolo_model = load_model(model_path, compile=False)
-        except:
+        except Exception as e:
+            print(e)
             self.yolo_model = tiny_yolo_body(Input(shape=(None, None, 3)), num_anchors//2, num_classes) \
                 if is_tiny_version else yolo_body(Input(shape=(None, None, 3)), num_anchors//3, num_classes)
             # make sure model, anchors and classes match
@@ -122,6 +128,9 @@ class YOLO(object):
         print(image_data.shape)
         image_data /= 255.
         image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
+
+        init_g = tf.global_variables_initializer()
+        self.sess.run(init_g)
 
         out_boxes, out_scores, out_classes = self.sess.run(
             [self.boxes, self.scores, self.classes],
@@ -222,9 +231,9 @@ def detect_video(yolo, video_path, output_path=""):
 
 def deete_img(yolo):
     # *******************************测试图片的路径*****************************************
-    path = '/home/ajg/Desktop/Mobilnet/XGD0408_yolo/VOCdevkit/VOC2007/JPEGImages/*.jpg'
+    path = './test_data/000006.jpg'
 # ******************************输出测试结果的路径***************************************
-    outdri = '/home/ajg/Desktop/Mobilnet/XGD0408_yolo/VOCdevkit/VOC2007/result/'
+    outdri = 'test_data/result/'
     for jpgfile in glob.glob(path):
         img = Image.open(jpgfile)
         img = yolo.detect_image(img)
